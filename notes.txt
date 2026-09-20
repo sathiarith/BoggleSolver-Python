@@ -1,0 +1,27 @@
+data structure - trie
+    - store dictionary words for identification via world retrival
+    - using trie (tree pathing)
+file dependency - dictionary list
+    - set up trie dictionary
+
+interface:
+- INPUT:
+    front-end:
+    - ideally graphical interface
+        - Qt creator
+    - boggle graphic, click a "ball"/node to enter letter value
+    - challenge: use AI to identify letter grid and create input
+    basic start:
+    - enter through terminal input (store in list representing nxm grid)
+- OUTPUT:
+    front-end:
+    - list possible words (graphic of a scroll/paper)
+    - show traversal of nodes via color and line path
+    basic start:
+    - output text file of word or terminal window
+- BACK-END:
+    - trie population via text file read
+    - given input (api) traverse trie to populate word list
+- FRONT-END (graphical):
+    - "maths" to draw pathing of nodes for each possible words
+    - drawing responsibilities
