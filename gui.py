@@ -31,15 +31,17 @@ COLOR_SELECTED_TEXT = "white"
 COLOR_UNSELECTED = "white"
 COLOR_UNSELECTED_TEXT = "black"
 COLOR_BORDER = "black"
-
+COLOR_HEADER = "orange"
+COLOR_HEADER_FONT = "white"
 
 class BoggleSolverApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.title("Boggle Solver")
-        self.geometry("1200x760")
-        self.minsize(1000, 650)
+        self.geometry("700x425")
+        self.minsize(700, 425)
+        self.configure(fg_color="lightblue")
 
         # State
         self.board_size = 4
@@ -69,8 +71,8 @@ class BoggleSolverApp(ctk.CTk):
     def _build_entry_method_panel(self):
         header = ctk.CTkLabel(
             self, text="Entry Method", font=ctk.CTkFont(size=16, weight="bold"),
-            fg_color="white", text_color="black",
-            corner_radius=0, height=40,
+            fg_color=COLOR_HEADER, text_color=COLOR_HEADER_FONT,
+            corner_radius=50, height=40,
         )
         header.grid(row=0, column=0, sticky="new", padx=10, pady=(10, 5))
 
@@ -106,8 +108,8 @@ class BoggleSolverApp(ctk.CTk):
     # -- Center column: title, board, size selector ----------------------
     def _build_center_panel(self):
         title = ctk.CTkLabel(
-            self, text="Boggle Solver", font=ctk.CTkFont(size=36, weight="bold"),
-            fg_color="white", text_color="black", corner_radius=0, height=60,
+            self, text="Boggle Solver", font=ctk.CTkFont(size=30, weight="bold"),
+            fg_color=COLOR_HEADER, text_color=COLOR_HEADER_FONT, corner_radius=50, height=60,
         )
         title.grid(row=0, column=1, sticky="new", padx=10, pady=(10, 5))
 
@@ -139,8 +141,8 @@ class BoggleSolverApp(ctk.CTk):
     # -- Right column: Valid words ---------------------------------------
     def _build_valid_words_panel(self):
         header = ctk.CTkLabel(
-            self, text="Valid Words", font=ctk.CTkFont(size=16),
-            fg_color="white", text_color="black", corner_radius=0, height=40,
+            self, text="Valid Words", font=ctk.CTkFont(size=16, weight="bold"),
+            fg_color=COLOR_HEADER, text_color=COLOR_HEADER_FONT, corner_radius=50, height=40,
         )
         header.grid(row=0, column=2, sticky="new", padx=10, pady=(10, 5))
 
