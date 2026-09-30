@@ -9,6 +9,7 @@ interface:
     front-end:
     - ideally graphical interface
         - Qt creator
+        - customtkinter
     - boggle graphic, click a "ball"/node to enter letter value
     - challenge: use AI to identify letter grid and create input
     basic start:
