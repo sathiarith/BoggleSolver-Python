@@ -43,6 +43,7 @@ class BoggleSolverApp(ctk.CTk):
 
         # State
         self.board_size = 4
+        self.prev_board_size = 0
         self.entry_mode = "Manual"
         self.tile_entries = []  # list of CTkEntry, [row][col]
 
@@ -202,6 +203,15 @@ class BoggleSolverApp(ctk.CTk):
 
     def _show_manual_board(self, size):
         self._clear_board_frame()
+
+        # reset previous resize configuration weights
+        for r in range(self.prev_board_size):
+            self.board_frame.grid_rowconfigure(r, weight=0, uniform="")
+        for c in range(self.prev_board_size):
+            self.board_frame.grid_columnconfigure(c, weight=0, uniform="")
+
+        # Update previous size
+        self.prev_board_size = size
 
         for r in range(size):
             self.board_frame.grid_rowconfigure(r, weight=1, uniform="row")
