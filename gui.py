@@ -39,8 +39,8 @@ class BoggleSolverApp(ctk.CTk):
         super().__init__()
 
         self.title("Boggle Solver")
-        self.geometry("700x425")
-        self.minsize(700, 425)
+        self.geometry("1024x576")
+        self.minsize(825, 425)
         self.configure(fg_color="lightblue")
 
         # State
@@ -74,7 +74,7 @@ class BoggleSolverApp(ctk.CTk):
             fg_color=COLOR_HEADER, text_color=COLOR_HEADER_FONT,
             corner_radius=50, height=40,
         )
-        header.grid(row=0, column=0, sticky="new", padx=10, pady=(10, 5))
+        header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
 
         box = ctk.CTkFrame(self, border_width=2, border_color=COLOR_BORDER, fg_color="white")
         box.grid(row=1, column=0, sticky="new", padx=10, pady=5)
@@ -115,7 +115,7 @@ class BoggleSolverApp(ctk.CTk):
 
         # Frame that holds the letter grid; contents are rebuilt on demand
         self.board_frame = ctk.CTkFrame(
-            self, border_width=2, border_color=COLOR_BORDER, fg_color="white"
+            self, border_width=2, border_color=COLOR_BORDER, fg_color="gray88"
         )
         self.board_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=5)
 
@@ -144,7 +144,7 @@ class BoggleSolverApp(ctk.CTk):
             self, text="Valid Words", font=ctk.CTkFont(size=16, weight="bold"),
             fg_color=COLOR_HEADER, text_color=COLOR_HEADER_FONT, corner_radius=50, height=40,
         )
-        header.grid(row=0, column=2, sticky="new", padx=10, pady=(10, 5))
+        header.grid(row=0, column=2, sticky="ew", padx=10, pady=(10, 5))
 
         self.words_frame = ctk.CTkScrollableFrame(
             self, border_width=2, border_color=COLOR_BORDER, fg_color="white"
@@ -265,22 +265,32 @@ class BoggleSolverApp(ctk.CTk):
 
     def _on_tile_typed(self, event, r, c):
         entry = self.tile_entries[r][c]
-        text = entry.get().upper()
 
-        # Keep only the last typed letter, letters only
-        text = "".join(ch for ch in text if ch.isalpha())[-1:]
+        if event.keysym in ("BackSpace", "Delete"):
+            entry.delete(0, "end")
+            return
+
+        # Only react to an actual letter key being pressed —
+        # ignore arrows, Tab, Home/End, Shift, etc.
+        if not event.char.isalpha():
+            return
+
+        letter = event.char.upper()
+
         entry.delete(0, "end")
-        entry.insert(0, text)
+        if letter == "Q":
+            entry.insert(0, "Qu")
+        else:
+            entry.insert(0, letter)
+        entry.icursor("end")
 
-        # Auto-advance to the next tile once a letter is entered
-        if text and event.keysym not in ("BackSpace", "Delete"):
-            size = self.board_size
-            next_r, next_c = r, c + 1
-            if next_c >= size:
-                next_c = 0
-                next_r += 1
-            if next_r < size:
-                self.tile_entries[next_r][next_c].focus_set()
+        size = self.board_size
+        next_r, next_c = r, c + 1
+        if next_c >= size:
+            next_c = 0
+            next_r += 1
+        if next_r < size:
+            self.tile_entries[next_r][next_c].focus_set()
 
     # ------------------------------------------------------------------
     # Clear Board / Size selection
