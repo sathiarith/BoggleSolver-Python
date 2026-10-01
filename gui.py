@@ -233,7 +233,7 @@ class BoggleSolverApp(ctk.CTk):
                     font=ctk.CTkFont(size=font_size, weight="bold"),
                     border_width=2,
                     border_color=COLOR_BORDER,
-                    corner_radius=0,
+                    corner_radius=8,
                     fg_color="white",
                     text_color="black",
                 )
