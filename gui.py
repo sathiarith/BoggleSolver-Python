@@ -340,8 +340,3 @@ class BoggleSolverApp(ctk.CTk):
         print("Current board:", board)
         # TODO: implement solving logic, then:
         # self.set_valid_words(found_words)
-
-
-if __name__ == "__main__":
-    app = BoggleSolverApp()
-    app.mainloop()

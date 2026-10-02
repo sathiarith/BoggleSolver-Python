@@ -1,10 +1,9 @@
-from input_handling import get_board_info
-from board import Board
+from gui import BoggleSolverApp
 
 
 def main():
-    board = Board(get_board_info("USER_ENTRY"))
-    board.print_board()
+    app = BoggleSolverApp()
+    app.mainloop()
 
 if __name__ == '__main__':
     main()
