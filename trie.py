@@ -9,9 +9,6 @@ class TrieNode:
 
 class Trie:
     def __init__(self):
-        # root to a-z
-        # uses dictionary/list
-        # make methods to accept word list to propagate trie
         self.root = TrieNode(prefix="", char="")
 
     def store_dic_words(self, path: str):
@@ -32,14 +29,22 @@ class Trie:
 
             curr_node = curr_node.children[char]
             curr_prefix += char
-
         curr_node.is_word = True
 
-    # def check_if_word() -> bool:
-    #     return True
+
+    def check_if_word(self, string: str) -> bool:
+        curr_node = self.root
+        for char in string:
+
+            if char in curr_node.children:
+                curr_node = curr_node.children[char]
+                print(curr_node.data)
+            else:
+                return False
+        return curr_node.is_word
 
 if __name__ == '__main__':
-    path = r"C:\Users\sathc\PycharmProjects\BoggleSolver\words_dictionary.json"
+    _path = r"C:\Users\sathc\PycharmProjects\BoggleSolver\words_dictionary.json"
     trie = Trie()
-    trie.store_dic_words(path)
-    print(trie.root.children)
+    trie.store_dic_words(_path)
+    print(trie.check_if_word("highwayman"))
