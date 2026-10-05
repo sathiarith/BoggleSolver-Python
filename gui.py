@@ -21,6 +21,8 @@ Notes:
 
 import customtkinter as ctk
 from tkinter import filedialog
+from trie import Trie
+from solver import Solver
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -52,6 +54,9 @@ class BoggleSolverApp(ctk.CTk):
         self._build_layout()
         self._show_manual_board(self.board_size)  # default: 4x4 manual board
 
+        # Word list generation component
+        self._trie = Trie()
+
     # ------------------------------------------------------------------
     # Layout construction
     # ------------------------------------------------------------------
@@ -63,6 +68,7 @@ class BoggleSolverApp(ctk.CTk):
         self.grid_rowconfigure(1, weight=1)
 
         self._build_entry_method_panel()
+        self._build_submit_board_button()
         self._build_clear_board_button()
         self._build_center_panel()
         self._build_valid_words_panel()
@@ -95,6 +101,15 @@ class BoggleSolverApp(ctk.CTk):
             corner_radius=4, command=self._on_image_clicked,
         )
         self.image_btn.grid(row=1, column=0, sticky="ew", padx=15, pady=(0, 20))
+
+    def _build_submit_board_button(self):
+        self.submit_btn = ctk.CTkButton(
+            self, text="Submit", font=ctk.CTkFont(size=14, weight="bold"),
+            fg_color=COLOR_UNSELECTED, text_color=COLOR_UNSELECTED_TEXT,
+            hover_color="#e0e0e0", border_width=2, border_color=COLOR_BORDER,
+            corner_radius=4, height=45, command=self._on_submit_board,
+        )
+        self.submit_btn.grid(row=1, column=0, sticky="sew", padx=10, pady=(20, 0))
 
     def _build_clear_board_button(self):
         self.clear_btn = ctk.CTkButton(
@@ -189,7 +204,8 @@ class BoggleSolverApp(ctk.CTk):
             print(f"[Image mode] Selected file (not yet processed): {file_path}")
         self._show_image_placeholder()
 
-    def _set_button_selected(self, button, selected):
+    @staticmethod
+    def _set_button_selected(button, selected):
         if selected:
             button.configure(fg_color=COLOR_SELECTED, text_color=COLOR_SELECTED_TEXT)
         else:
@@ -279,7 +295,7 @@ class BoggleSolverApp(ctk.CTk):
 
         entry.delete(0, "end")
         if letter == "Q":
-            entry.insert(0, "Qu")
+            entry.insert(0, "QU")
         else:
             entry.insert(0, letter)
         entry.icursor("end")
@@ -293,8 +309,26 @@ class BoggleSolverApp(ctk.CTk):
             self.tile_entries[next_r][next_c].focus_set()
 
     # ------------------------------------------------------------------
-    # Clear Board / Size selection
+    # Submit Board / Clear Board / Size selection
     # ------------------------------------------------------------------
+    def _on_submit_board(self):
+        board = self.get_board_letters()
+        valid_check, blanks_coords = self._get_board_validity_state(board)
+        # Using set for look-up purposes
+        blanks_set = set(blanks_coords)
+
+        # Updates all blank tiles to have red border and the rest defined by COLOR_BORDER
+        for r, row in enumerate(self.tile_entries):
+            for c, entry in enumerate(row):
+                entry.configure(border_color="red" if (r, c) in blanks_set else COLOR_BORDER)
+
+        # call solver.py and provide valid board info
+        if valid_check:
+            solver = Solver(board, self._trie)
+            # valid_words = solver.dfs()
+            # self.set_valid_words(valid_words)
+
+
     def _on_clear_board(self):
         for row in self.tile_entries:
             for entry in row:
@@ -316,11 +350,23 @@ class BoggleSolverApp(ctk.CTk):
             self._set_button_selected(btn, size == selected_size)
 
     # ------------------------------------------------------------------
-    # Backend hook (placeholder)
+    # Backend
     # ------------------------------------------------------------------
     def get_board_letters(self):
         """Return the current board as a 2D list of letters (may contain '')."""
         return [[entry.get() for entry in row] for row in self.tile_entries]
+
+    @staticmethod
+    def _get_board_validity_state(board: list[list[str]]) -> tuple[bool, list[tuple[int,int]]]:
+        # Check for all blank entry(s) and store their coordinate(s)
+        invalid_coordinates = []
+        for i, row in enumerate(board):
+            for j, tile in enumerate(row):
+                if tile == "":
+                    invalid_coordinates.append((i, j))
+
+        is_valid = not invalid_coordinates
+        return is_valid, invalid_coordinates
 
     def find_valid_words(self):
         """

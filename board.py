@@ -7,3 +7,9 @@ class Board:
     def print_board(self,):
         for row in self.board:
             print(row)
+
+    def get_row(self) -> int:
+        return self.row
+
+    def get_col(self) -> int:
+        return self.column

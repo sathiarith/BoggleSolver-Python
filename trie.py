@@ -38,7 +38,7 @@ class Trie:
 
             if char in curr_node.children:
                 curr_node = curr_node.children[char]
-                print(curr_node.data)
+                print(f"{curr_node.prefix}"+f"{curr_node.data}")
             else:
                 return False
         return curr_node.is_word
