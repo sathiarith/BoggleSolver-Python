@@ -329,7 +329,7 @@ class BoggleSolverApp(ctk.CTk):
         # call solver.py and provide valid board info
         if valid_check:
             solver = Solver(board, self._trie)
-            # valid_words = solver.dfs()
+            # valid_words = solver.find_words()
             # self.set_valid_words(valid_words)
 
 
@@ -371,22 +371,3 @@ class BoggleSolverApp(ctk.CTk):
 
         is_valid = not invalid_coordinates
         return is_valid, invalid_coordinates
-
-    def find_valid_words(self):
-        """
-        Placeholder for the Boggle-solving backend.
-
-        A typical approach:
-          1. Load a dictionary (e.g. a word list / trie) at startup.
-          2. Read the board with `get_board_letters()`.
-          3. DFS/backtrack from each tile, following adjacent tiles
-             (including diagonals) without reusing a tile, pruning
-             paths that aren't a prefix of any dictionary word (a
-             trie makes this efficient).
-          4. Collect all words found that meet Boggle's minimum length.
-          5. Call `self.set_valid_words(sorted(words))` to display them.
-        """
-        board = self.get_board_letters()
-        print("Current board:", board)
-        # TODO: implement solving logic, then:
-        # self.set_valid_words(found_words)
