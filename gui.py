@@ -323,8 +323,9 @@ class BoggleSolverApp(ctk.CTk):
                 entry.configure(border_color="red" if (r, c) in blanks_set else COLOR_BORDER)
 
         # Focus the first blank tile so the user can fix it immediately
-        first_row, first_col = blanks_coords[0]
-        self.tile_entries[first_row][first_col].focus_set()
+        if blanks_coords:
+            first_row, first_col = blanks_coords[0]
+            self.tile_entries[first_row][first_col].focus_set()
 
         # call solver.py and provide valid board info
         if valid_check:
