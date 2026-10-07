@@ -1,0 +1,9 @@
+words_w_def.json:
+    - initially named "merged.json"
+    - https://github.com/nightblade9/simple-english-dictionary/blob/main/README.md
+
+words_dictionary.json:
+    - https://github.com/dwyl/english-words/blob/master/words_dictionary.json
+
+dictionary.json:
+    - https://github.com/adambom/dictionary/blob/master/dictionary.json
