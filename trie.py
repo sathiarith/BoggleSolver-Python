@@ -12,18 +12,19 @@ class Trie:
         self.root = TrieNode(prefix="", char="")
 
     def store_dic_words(self, path: str):
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            # Type safety check: ensure the root object parsed into a dictionary
-            if isinstance(data, dict):
-                # Iterating directly over a dict extracts its string keys
-                for word in data:
-                    self.insert(word)
+
+        if not isinstance(data, dict):
+            raise ValueError(f"Expected a JSON object at top level in {path}, got {type(data).__name__}")
+
+        for word in data:
+            self.insert(word)
 
     def insert(self, word: str):
         curr_node = self.root
         curr_prefix = self.root.prefix
-        for char in word:
+        for char in word.lower():
             if char not in curr_node.children:
                 curr_node.children[char] = TrieNode(curr_prefix, char)
 
@@ -34,17 +35,19 @@ class Trie:
 
     def check_if_word(self, string: str) -> bool:
         curr_node = self.root
-        for char in string:
-
+        for char in string.lower():
             if char in curr_node.children:
                 curr_node = curr_node.children[char]
-                print(f"{curr_node.prefix}"+f"{curr_node.data}")
             else:
                 return False
         return curr_node.is_word
 
-if __name__ == '__main__':
-    _path = r"C:\Users\sathc\PycharmProjects\BoggleSolver\words_dictionary.json"
-    trie = Trie()
-    trie.store_dic_words(_path)
-    print(trie.check_if_word("highwayman"))
+    def check_if_prefix(self, prefix: str) -> bool:
+        """Returns True if there is any word in the trie that starts with the given prefix."""
+        curr_node = self.root
+        for char in prefix:
+            if char in curr_node.children:
+                curr_node = curr_node.children[char]
+            else:
+                return False
+        return True

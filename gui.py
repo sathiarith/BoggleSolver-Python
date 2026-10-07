@@ -21,7 +21,6 @@ Notes:
 
 import customtkinter as ctk
 from tkinter import filedialog
-from trie import Trie
 from solver import Solver
 
 ctk.set_appearance_mode("light")
@@ -54,8 +53,6 @@ class BoggleSolverApp(ctk.CTk):
         self._build_layout()
         self._show_manual_board(self.board_size)  # default: 4x4 manual board
 
-        # Word list generation component
-        self._trie = Trie()
 
     # ------------------------------------------------------------------
     # Layout construction
@@ -329,9 +326,9 @@ class BoggleSolverApp(ctk.CTk):
 
         # call solver.py and provide valid board info
         if valid_check:
-            solver = Solver(board, self._trie)
-            # valid_words = solver.find_words()
-            # self.set_valid_words(valid_words)
+            solver = Solver(board)
+            valid_words = solver.find_words()
+            self.set_valid_words(valid_words)
 
 
     def _on_clear_board(self):
