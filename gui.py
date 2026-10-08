@@ -429,8 +429,8 @@ class BoggleSolverApp(ctk.CTk):
             valid_words = solver.find_words()
             self.set_valid_words(valid_words)
 
-    def reset_missing_tiles(self):
-        """Return all tile borders to COLOR_BORDER"""
+    def reset_tiles_color(self):
+        """Return all tiles' borders to COLOR_BORDER"""
         for r, row in enumerate(self.tile_entries):
             for c, entry in enumerate(row):
                 entry.configure(border_color=COLOR_BORDER)
@@ -443,7 +443,7 @@ class BoggleSolverApp(ctk.CTk):
         if self.tile_entries:
             self.tile_entries[0][0].focus_set()
 
-        self.reset_missing_tiles()
+        self.reset_tiles_color()
         self.set_valid_words([])
 
     def _on_size_selected(self, size):
