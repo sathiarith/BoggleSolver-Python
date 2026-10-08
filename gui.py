@@ -4,9 +4,9 @@ Built with CustomTkinter, matching the provided wireframe layout.
 
 Layout:
     - Top-left:    "Entry Method" panel with Manual / Image buttons
-    - Bottom-left: "Clear Board" button
+    - Bottom-left: "Submit" and "Clear Board" button
     - Center:      "Boggle Solver" title + letter grid (4x4 / 5x5 / 6x6)
-    - Right:       "Valid words" scrollable results panel
+    - Right:       "Valid Words" scrollable results panel
 
 Notes:
     - Manual mode shows an empty board of single-letter entry boxes.
@@ -14,13 +14,13 @@ Notes:
       a normal text entry.
     - Image mode is a stub for now (prompts for an image file, but the
       OCR/parsing logic is not implemented yet).
-    - The "Valid words" list is currently populated with placeholder
-      text (lorem/ipsum/dolor) until the word-solving backend exists.
-      See `find_valid_words()` below for where that logic should go.
+    - The "Valid words" list is populated with a trie data structure using
+      the Solver class for backend processing.
 """
 
 import customtkinter as ctk
 from tkinter import filedialog
+from trie import Trie
 from solver import Solver
 
 ctk.set_appearance_mode("light")
@@ -36,7 +36,29 @@ COLOR_HEADER = "orange"
 COLOR_HEADER_FONT = "white"
 
 class BoggleSolverApp(ctk.CTk):
+    """Main window of the Boggle Solver application.
+
+    Builds the three-column layout (entry method, board, results) and wires
+    the buttons to the board-entry and solving logic. Words are found by
+    handing the board to `solver.Solver`.
+
+    Attributes:
+        board_size: Current board dimension (4, 5, or 6).
+        prev_board_size: Board dimension before the last rebuild. Used to
+            reset grid weights on `board_frame`.
+        entry_mode: Either "Manual" or "Image".
+        tile_entries: 2D list of `CTkEntry` widgets indexed `[row][col]`.
+            Empty while the image placeholder is shown.
+        manual_btn: Button that selects manual entry.
+        image_btn: Button that selects image entry.
+        submit_btn: Button that validates the board and runs the solver.
+        clear_btn: Button that empties all tiles.
+        size_buttons: Maps a board size to its selector button.
+        board_frame: Frame holding the tile grid; rebuilt on demand.
+        words_frame: Scrollable frame listing the valid words.
+    """
     def __init__(self):
+        """Create the window, build the layout, and show a 4x4 manual board."""
         super().__init__()
 
         self.title("Boggle Solver")
@@ -53,11 +75,15 @@ class BoggleSolverApp(ctk.CTk):
         self._build_layout()
         self._show_manual_board(self.board_size)  # default: 4x4 manual board
 
+        # load dictionary word list once
+        self.trie = Trie()
+        self.trie.store_dic_words(path="CSW24_words.json")
 
     # ------------------------------------------------------------------
     # Layout construction
     # ------------------------------------------------------------------
     def _build_layout(self):
+        """Configure the 3-column outer grid and build each panel."""
         # 3-column, 2-row outer grid: left | center | right
         self.grid_columnconfigure(0, weight=0, minsize=250)
         self.grid_columnconfigure(1, weight=1)
@@ -72,6 +98,7 @@ class BoggleSolverApp(ctk.CTk):
 
     # -- Left column: Entry Method -------------------------------------
     def _build_entry_method_panel(self):
+        """Build the "Entry Method" header and the Manual/Image buttons."""
         header = ctk.CTkLabel(
             self, text="Entry Method", font=ctk.CTkFont(size=16, weight="bold"),
             fg_color=COLOR_HEADER, text_color=COLOR_HEADER_FONT,
@@ -100,6 +127,7 @@ class BoggleSolverApp(ctk.CTk):
         self.image_btn.grid(row=1, column=0, sticky="ew", padx=15, pady=(0, 20))
 
     def _build_submit_board_button(self):
+        """Build the "Submit" button in the bottom-left area."""
         self.submit_btn = ctk.CTkButton(
             self, text="Submit", font=ctk.CTkFont(size=14, weight="bold"),
             fg_color=COLOR_UNSELECTED, text_color=COLOR_UNSELECTED_TEXT,
@@ -109,6 +137,7 @@ class BoggleSolverApp(ctk.CTk):
         self.submit_btn.grid(row=1, column=0, sticky="sew", padx=10, pady=(20, 0))
 
     def _build_clear_board_button(self):
+        """Build the "Clear Board" button below the Submit button."""
         self.clear_btn = ctk.CTkButton(
             self, text="Clear Board", font=ctk.CTkFont(size=14, weight="bold"),
             fg_color=COLOR_UNSELECTED, text_color=COLOR_UNSELECTED_TEXT,
@@ -119,6 +148,7 @@ class BoggleSolverApp(ctk.CTk):
 
     # -- Center column: title, board, size selector ----------------------
     def _build_center_panel(self):
+        """Build the title, the board frame, and the 4x4/5x5/6x6 selector."""
         title = ctk.CTkLabel(
             self, text="Boggle Solver", font=ctk.CTkFont(size=30, weight="bold"),
             fg_color=COLOR_HEADER, text_color=COLOR_HEADER_FONT, corner_radius=50, height=60,
@@ -152,6 +182,7 @@ class BoggleSolverApp(ctk.CTk):
 
     # -- Right column: Valid words ---------------------------------------
     def _build_valid_words_panel(self):
+        """Build the "Valid Words" header and its scrollable results frame."""
         header = ctk.CTkLabel(
             self, text="Valid Words", font=ctk.CTkFont(size=16, weight="bold"),
             fg_color=COLOR_HEADER, text_color=COLOR_HEADER_FONT, corner_radius=50, height=40,
@@ -164,11 +195,13 @@ class BoggleSolverApp(ctk.CTk):
         self.words_frame.grid(row=1, column=2, rowspan=2, sticky="nsew", padx=10, pady=5)
         self.words_frame.grid_columnconfigure(0, weight=1)
 
-        # Placeholder content until the solving backend is wired up
-        self.set_valid_words(["lorem", "ipsum", "dolor"])
-
     def set_valid_words(self, words):
-        """Replace the contents of the Valid words panel with `words`."""
+        """Replace the contents of the Valid Words panel.
+
+        Args:
+            words: Iterable of strings to display, one label per word,
+                in the order given.
+        """
         for widget in self.words_frame.winfo_children():
             widget.destroy()
         for i, word in enumerate(words):
@@ -182,12 +215,18 @@ class BoggleSolverApp(ctk.CTk):
     # Entry Method behavior
     # ------------------------------------------------------------------
     def _on_manual_clicked(self):
+        """Switch to manual entry and rebuild an empty board."""
         self.entry_mode = "Manual"
         self._set_button_selected(self.manual_btn, True)
         self._set_button_selected(self.image_btn, False)
         self._show_manual_board(self.board_size)
 
     def _on_image_clicked(self):
+        """Switch to image entry and prompt for an image file.
+
+        Stub: the chosen path is only printed. OCR/parsing is not
+        implemented, so a placeholder message replaces the board.
+        """
         self.entry_mode = "Image"
         self._set_button_selected(self.image_btn, True)
         self._set_button_selected(self.manual_btn, False)
@@ -203,6 +242,12 @@ class BoggleSolverApp(ctk.CTk):
 
     @staticmethod
     def _set_button_selected(button, selected):
+        """Style a button as selected (gray) or unselected (white).
+
+        Args:
+            button: The `CTkButton` to restyle.
+            selected: True for the selected look, False otherwise.
+        """
         if selected:
             button.configure(fg_color=COLOR_SELECTED, text_color=COLOR_SELECTED_TEXT)
         else:
@@ -212,11 +257,20 @@ class BoggleSolverApp(ctk.CTk):
     # Board building
     # ------------------------------------------------------------------
     def _clear_board_frame(self):
+        """Destroy everything in the board frame and forget the tile entries."""
         for widget in self.board_frame.winfo_children():
             widget.destroy()
         self.tile_entries = []
 
     def _show_manual_board(self, size):
+        """Rebuild the board as an empty `size` x `size` grid of entry boxes.
+
+        Resets grid weights left over from the previous board, scales the
+        font down for larger boards, and focuses the first tile.
+
+        Args:
+            size: Number of rows and columns.
+        """
         self._clear_board_frame()
 
         # reset previous resize configuration weights
@@ -234,6 +288,9 @@ class BoggleSolverApp(ctk.CTk):
             self.board_frame.grid_columnconfigure(c, weight=1, uniform="col")
 
         font_size = max(14, int(48 - (size - 4) * 8))
+        # Register once; "%P" passes the text the entry would contain after the edit
+        vcmd = (self.register(self._is_valid_tile_text), "%P")
+
         entries_grid = []
         for r in range(size):
             row_entries = []
@@ -249,6 +306,8 @@ class BoggleSolverApp(ctk.CTk):
                     corner_radius=8,
                     fg_color="white",
                     text_color="black",
+                    validate="key",
+                    validatecommand=vcmd,
                 )
                 entry.grid(row=r, column=c, sticky="nsew", padx=4, pady=4)
 
@@ -263,6 +322,7 @@ class BoggleSolverApp(ctk.CTk):
         self.after(50, lambda: self.tile_entries[0][0].focus_set())
 
     def _show_image_placeholder(self):
+        """Replace the board with a "still in development" message."""
         self._clear_board_frame()
         self.board_frame.grid_rowconfigure(0, weight=1)
         self.board_frame.grid_columnconfigure(0, weight=1)
@@ -276,16 +336,45 @@ class BoggleSolverApp(ctk.CTk):
         )
         label.grid(row=0, column=0, sticky="nsew")
 
+    @staticmethod
+    def _is_valid_tile_text(proposed: str) -> bool:
+        """Tk validation callback for a tile's contents.
+
+        Args:
+            proposed: The text the entry would contain if the edit is allowed.
+
+        Returns:
+            True for an empty tile, a single ASCII letter, or "QU".
+            False for anything else (digits, symbols, spaces, non-ASCII
+            letters, or longer strings).
+        """
+        if proposed == "":
+            return True
+        if proposed.isascii() and proposed.isalpha():
+            return len(proposed) == 1 or proposed.upper() == "QU"
+        return False
+
     def _on_tile_typed(self, event, r, c):
+        """Handle a key release in a tile.
+
+        Backspace/Delete clears the tile. A letter key replaces the tile's
+        contents with the uppercase letter ("Q" becomes "QU") and moves
+        focus to the next tile, left to right, then top to bottom. All
+        other keys (arrows, Tab, Shift, ...) are ignored.
+
+        Args:
+            event: The Tk key event.
+            r: Row index of the tile that received the key.
+            c: Column index of the tile that received the key.
+        """
         entry = self.tile_entries[r][c]
 
         if event.keysym in ("BackSpace", "Delete"):
             entry.delete(0, "end")
             return
 
-        # Only react to an actual letter key being pressed —
-        # ignore arrows, Tab, Home/End, Shift, etc.
-        if not event.char.isalpha():
+        # Only accepts a letter per tile
+        if not (event.char.isascii() and event.char.isalpha()):
             return
 
         letter = event.char.upper()
@@ -309,6 +398,16 @@ class BoggleSolverApp(ctk.CTk):
     # Submit Board / Clear Board / Size selection
     # ------------------------------------------------------------------
     def _on_submit_board(self):
+        """Validate the board, flag blank tiles, and show the valid words.
+
+        Blank tiles get a red border (all others reset to the normal
+        border color) and the first blank tile is focused. If no tiles are
+        blank, a `Solver` is created and its results are shown in the
+        Valid Words panel.
+        """
+        # Clear previous word list
+        self.set_valid_words([])
+
         board = self.get_board_letters()
         valid_check, blanks_coords = self._get_board_validity_state(board)
         # Using set for look-up purposes
@@ -326,19 +425,34 @@ class BoggleSolverApp(ctk.CTk):
 
         # call solver.py and provide valid board info
         if valid_check:
-            solver = Solver(board)
+            solver = Solver(board, self.trie)
             valid_words = solver.find_words()
             self.set_valid_words(valid_words)
 
+    def reset_missing_tiles(self):
+        """Return all tile borders to COLOR_BORDER"""
+        for r, row in enumerate(self.tile_entries):
+            for c, entry in enumerate(row):
+                entry.configure(border_color=COLOR_BORDER)
 
     def _on_clear_board(self):
+        """Empty every tile and return focus to the first one."""
         for row in self.tile_entries:
             for entry in row:
                 entry.delete(0, "end")
         if self.tile_entries:
             self.tile_entries[0][0].focus_set()
 
+        self.reset_missing_tiles()
+        self.set_valid_words([])
+
     def _on_size_selected(self, size):
+        """Change the board size and reset the board.
+
+        Args:
+            size: The new board dimension (4, 5, or 6). Any letters
+                already entered are discarded.
+        """
         self.board_size = size
         self._highlight_size_button(size)
         # Letters reset whenever the board size changes
@@ -348,18 +462,39 @@ class BoggleSolverApp(ctk.CTk):
             self._show_image_placeholder()
 
     def _highlight_size_button(self, selected_size):
+        """Mark one size button as selected and the others as unselected.
+
+        Args:
+            selected_size: The size whose button should be highlighted.
+        """
         for size, btn in self.size_buttons.items():
             self._set_button_selected(btn, size == selected_size)
 
     # ------------------------------------------------------------------
-    # Backend
+    # Backend Processing
     # ------------------------------------------------------------------
     def get_board_letters(self):
-        """Return the current board as a 2D list of letters (may contain '')."""
+        """Return the current board as a 2D list of letters.
+
+        Returns:
+            A list of rows, each a list of the tile strings. Blank tiles
+            are empty strings, and a "Q" tile reads as "QU". The list is
+            empty if no tiles exist (e.g. in Image mode).
+        """
         return [[entry.get() for entry in row] for row in self.tile_entries]
 
     @staticmethod
     def _get_board_validity_state(board: list[list[str]]) -> tuple[bool, list[tuple[int,int]]]:
+        """Check a board for blank tiles.
+
+        Args:
+            board: 2D list of tile strings, as from `get_board_letters`.
+
+        Returns:
+            A tuple `(is_valid, blank_coords)`. `is_valid` is True when no
+            tile is blank. `blank_coords` lists the `(row, col)` of each
+            blank tile in row-major order.
+        """
         # Check for all blank entry(s) and store their coordinate(s)
         invalid_coordinates = []
         for i, row in enumerate(board):

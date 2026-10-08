@@ -1,5 +1,5 @@
 import pytest
-from input_handling import read_positive_int, get_dimensions, get_board_info
+from old_files.input_handling import read_positive_int, get_dimensions, get_board_info
 
 @pytest.mark.parametrize("value", [1, 2, 10, 999])
 def test_returns_valid_integer(monkeypatch, value):

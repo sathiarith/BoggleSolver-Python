@@ -1,17 +1,52 @@
+"""A Boggle-style word finder built on a Trie of valid dictionary words."""
+
 from trie import Trie
 
 class Solver:
-    def __init__(self, board: list[list[str]]) -> None:
+    """Finds all dictionary words that can be traced on a letter grid.
+
+    Words are formed by chaining adjacent tiles (horizontally, vertically,
+    or diagonally). Each tile may be used at most once per word. Matching is
+    case-insensitive, and results are returned in lowercase.
+
+    Example:
+      board = [["c", "a"],
+               ["t", "s"]]
+      Solver(board).find_words()
+      ['act', 'cat', 'cats', 'scat']
+    """
+
+    def __init__(self, board: list[list[str]], trie: Trie) -> None:
+        """Initialize the solver and load the dictionary.
+
+        Args:
+            board: A rectangular grid of tiles. Each tile is a string,
+                usually a single letter, but multi-letter tiles such as
+                "qu" also work. Must be non-empty.
+
+        Raises:
+            FileNotFoundError: If `CSW24_words.json` is not found in the
+                working directory.
+            ValueError: If the dictionary file is not a JSON object.
+        """
         self.board = board
         self.row = len(board)
         self.col = len(board[0])
         self.used_tiles = [[False for _ in range(self.col)] for _ in range(self.row)]
 
         # Word list generation component
-        self.trie = Trie()
-        self.trie.store_dic_words(path="dictionary.json")
+        self.trie = trie
 
     def find_words(self) -> list[str]:
+        """Find every valid word on the board.
+
+        Starts a depth-first search from each tile. Duplicates are removed
+        and words shorter than 3 letters are dropped.
+
+        Returns:
+            An alphabetically sorted list of unique lowercase words, each
+            at least 3 letters long.
+        """
         valid_words = []
         for r in range(self.row):
             for c in range(self.col):
@@ -22,7 +57,23 @@ class Solver:
         return sorted(filtered_words)
 
     def dfs(self, prefix: str, r: int, c: int) -> list[str]:
+        """Recursively search for words, extending `prefix` with tile (r, c).
 
+        Marks the current tile as used while exploring its 8 neighbors, then
+        unmarks it (backtracking) so other paths can reuse it.
+
+        Args:
+            prefix: Letters collected so far, before this tile.
+            r: Row index of the tile to visit.
+            c: Column index of the tile to visit.
+
+        Returns:
+            All dictionary words found along paths that pass through this
+            tile. May contain duplicates and words under 3 letters; callers
+            should clean the result (see `find_words`). Returns an empty
+            list if the tile is out of bounds, already used, or the
+            search path can't lead to a word.
+        """
         if self.is_out_of_bounds(r, c) or self.is_used(r, c):
             return []
 
@@ -54,8 +105,13 @@ class Solver:
 
     # Helper functions
     def is_out_of_bounds(self, row: int, col: int) -> bool:
+        """Return True if (row, col) lies outside the board."""
         return not (0 <= row < self.row and 0 <= col < self.col)
 
     def is_used(self, row: int, col: int) -> bool:
+        """Return True if the tile at (row, col) is on the current path.
+
+        The caller must ensure the position is in bounds first.
+        """
         return self.used_tiles[row][col]
 

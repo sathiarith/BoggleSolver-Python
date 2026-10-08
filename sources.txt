@@ -7,3 +7,7 @@ words_dictionary.json:
 
 dictionary.json:
     - https://github.com/adambom/dictionary/blob/master/dictionary.json
+
+CSW24_words.json:
+    - converted from CSW24.txt
+    - https://www.cocoscrabble.org/lexicon

@@ -2,7 +2,7 @@
 
 import pytest
 
-from input_handling import get_dimensions
+from old_files.input_handling import get_dimensions
 
 # main.py may be changed in terms of sys.argv pertaining to get_dimensions
 def test_get_dimensions_user_inputs(monkeypatch):
