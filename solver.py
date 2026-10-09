@@ -25,7 +25,7 @@ class Solver:
                 "qu" also work. Must be non-empty.
 
         Raises:
-            FileNotFoundError: If `CSW24_words.json` is not found in the
+            FileNotFoundError: If `words_csw24.json` is not found in the
                 working directory.
             ValueError: If the dictionary file is not a JSON object.
         """

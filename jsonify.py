@@ -31,4 +31,4 @@ def convert_txt_to_boggle_json(txt_path: str, json_output_path: str):
 # --- Local Execution Example ---
 # convert_txt_to_boggle_json("CSW21.txt", "words_dictionary.json")
 if __name__ == "__main__":
-    convert_txt_to_boggle_json("CSW24.txt", "CSW24_words.json")
+    convert_txt_to_boggle_json("CSW24.txt", "words_csw24.json")

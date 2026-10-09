@@ -12,16 +12,20 @@ Notes:
     - Manual mode shows an empty board of single-letter entry boxes.
       The first tile is autofocused with a blinking cursor, just like
       a normal text entry.
-    - Image mode is a stub for now (prompts for an image file, but the
-      OCR/parsing logic is not implemented yet).
+    - Image mode prompts for an image file, has user crop image to the board area,
+      and then extracts the letters to board. Letter(s) that fail to be extracted
+      are left as blank.
     - The "Valid words" list is populated with a trie data structure using
       the Solver class for backend processing.
 """
 
+from PIL import Image, ImageOps
 import customtkinter as ctk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from trie import Trie
 from solver import Solver
+from crop_dialog import ask_crop
+from image_reader import read_board, BoardReadError
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -73,11 +77,11 @@ class BoggleSolverApp(ctk.CTk):
         self.tile_entries = []  # list of CTkEntry, [row][col]
 
         self._build_layout()
-        self._show_manual_board(self.board_size)  # default: 4x4 manual board
+        self._show_board(self.board_size)  # default: 4x4 manual board
 
         # load dictionary word list once
         self.trie = Trie()
-        self.trie.store_dic_words(path="CSW24_words.json")
+        self.trie.store_dic_words(path="words_csw24.json")
 
     # ------------------------------------------------------------------
     # Layout construction
@@ -114,7 +118,7 @@ class BoggleSolverApp(ctk.CTk):
             box, text="Manual", font=ctk.CTkFont(size=14, weight="bold"),
             fg_color=COLOR_SELECTED, text_color=COLOR_SELECTED_TEXT,
             hover_color="#6e6e6e", border_width=2, border_color=COLOR_BORDER,
-            corner_radius=4, command=self._on_manual_clicked,
+            corner_radius=4, command=self._on_manual_selected,
         )
         self.manual_btn.grid(row=0, column=0, sticky="ew", padx=15, pady=(20, 10))
 
@@ -122,7 +126,7 @@ class BoggleSolverApp(ctk.CTk):
             box, text="Image", font=ctk.CTkFont(size=14, weight="bold"),
             fg_color=COLOR_UNSELECTED, text_color=COLOR_UNSELECTED_TEXT,
             hover_color="#e0e0e0", border_width=2, border_color=COLOR_BORDER,
-            corner_radius=4, command=self._on_image_clicked,
+            corner_radius=4, command=self._on_image_selected,
         )
         self.image_btn.grid(row=1, column=0, sticky="ew", padx=15, pady=(0, 20))
 
@@ -214,31 +218,61 @@ class BoggleSolverApp(ctk.CTk):
     # ------------------------------------------------------------------
     # Entry Method behavior
     # ------------------------------------------------------------------
-    def _on_manual_clicked(self):
+    def _on_manual_selected(self):
         """Switch to manual entry and rebuild an empty board."""
         self.entry_mode = "Manual"
         self._set_button_selected(self.manual_btn, True)
         self._set_button_selected(self.image_btn, False)
-        self._show_manual_board(self.board_size)
+        self._show_board(self.board_size)
 
-    def _on_image_clicked(self):
+    def _on_image_selected(self):
         """Switch to image entry and prompt for an image file.
 
-        Stub: the chosen path is only printed. OCR/parsing is not
-        implemented, so a placeholder message replaces the board.
+        Prompts user to locate image file. Image is then processed
+        for letter extraction from tile.
         """
-        self.entry_mode = "Image"
-        self._set_button_selected(self.image_btn, True)
-        self._set_button_selected(self.manual_btn, False)
-
-        # Stub: prompt for an image file. OCR/parsing not implemented yet.
         file_path = filedialog.askopenfilename(
             title="Select a Boggle board image",
-            filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp"), ("All files", "*.*")],
+            filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp")],
         )
-        if file_path:
-            print(f"[Image mode] Selected file (not yet processed): {file_path}")
-        self._show_image_placeholder()
+        if not file_path:
+            return
+
+        try:
+            picture = ImageOps.exif_transpose(Image.open(file_path)).convert("RGB")
+        except OSError:
+            messagebox.showerror("Image error", "That file couldn't be opened as an image.")
+            return
+
+        board_image = ask_crop(self, picture)
+        if board_image is None:
+            return  # cancelled: nothing changes
+
+        try:
+            letters = read_board(board_image, self.board_size, method="ocr")
+        except BoardReadError as err:
+            messagebox.showwarning("Couldn't read board", str(err))
+            return
+
+        # Show the result in the manual grid so the user can fix mistakes (if any)
+        validity, _ = self._get_board_validity_state(letters)
+        if validity: # For when all tiles provided
+            self.entry_mode = "Image"
+            self._set_button_selected(self.manual_btn, False)
+            self._set_button_selected(self.image_btn, True)
+            self._show_board(self.board_size)
+        else: # User still needs to enter missing letter(s)
+            self._on_manual_selected()
+
+        self._fill_board(letters)
+
+    def _fill_board(self, letters):
+        """Fill the board with the given letters."""
+        for r, row in enumerate(letters):
+            for c, text in enumerate(row):
+                entry = self.tile_entries[r][c]
+                entry.delete(0, "end")
+                entry.insert(0, text)
 
     @staticmethod
     def _set_button_selected(button, selected):
@@ -262,7 +296,7 @@ class BoggleSolverApp(ctk.CTk):
             widget.destroy()
         self.tile_entries = []
 
-    def _show_manual_board(self, size):
+    def _show_board(self, size):
         """Rebuild the board as an empty `size` x `size` grid of entry boxes.
 
         Resets grid weights left over from the previous board, scales the
@@ -320,21 +354,6 @@ class BoggleSolverApp(ctk.CTk):
 
         # Focus the first tile so its cursor blinks, like the sketch shows
         self.after(50, lambda: self.tile_entries[0][0].focus_set())
-
-    def _show_image_placeholder(self):
-        """Replace the board with a "still in development" message."""
-        self._clear_board_frame()
-        self.board_frame.grid_rowconfigure(0, weight=1)
-        self.board_frame.grid_columnconfigure(0, weight=1)
-
-        label = ctk.CTkLabel(
-            self.board_frame,
-            text="Image entry is still in development.\nSelect an image file, then check back soon!",
-            font=ctk.CTkFont(size=18),
-            text_color="gray30",
-            justify="center",
-        )
-        label.grid(row=0, column=0, sticky="nsew")
 
     @staticmethod
     def _is_valid_tile_text(proposed: str) -> bool:
@@ -429,7 +448,7 @@ class BoggleSolverApp(ctk.CTk):
             valid_words = solver.find_words()
             self.set_valid_words(valid_words)
 
-    def reset_tiles_color(self):
+    def _reset_tiles_color(self):
         """Return all tiles' borders to COLOR_BORDER"""
         for r, row in enumerate(self.tile_entries):
             for c, entry in enumerate(row):
@@ -437,13 +456,16 @@ class BoggleSolverApp(ctk.CTk):
 
     def _on_clear_board(self):
         """Empty every tile and return focus to the first one."""
+        # Return to default entry
+        self._on_manual_selected()
+
         for row in self.tile_entries:
             for entry in row:
                 entry.delete(0, "end")
         if self.tile_entries:
             self.tile_entries[0][0].focus_set()
 
-        self.reset_tiles_color()
+        self._reset_tiles_color()
         self.set_valid_words([])
 
     def _on_size_selected(self, size):
@@ -453,11 +475,14 @@ class BoggleSolverApp(ctk.CTk):
             size: The new board dimension (4, 5, or 6). Any letters
                 already entered are discarded.
         """
+        # Return to default manual entry
+        self._on_manual_selected()
+
         self.board_size = size
         self._highlight_size_button(size)
         # Letters reset whenever the board size changes
         if self.entry_mode == "Manual":
-            self._show_manual_board(size)
+            self._show_board(size)
         else:
             self._show_image_placeholder()
 
