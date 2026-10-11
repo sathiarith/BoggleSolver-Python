@@ -79,7 +79,7 @@ class Solver:
 
         token = prefix + self.board[r][c].lower()
 
-        if not self.trie.check_if_prefix(prefix):
+        if not self.trie.check_if_prefix(token):
             return []
 
         self.used_tiles[r][c] = True

@@ -57,11 +57,9 @@ class CropDialog(ctk.CTkToplevel):
         self._box = None        # finished selection (canvas coords)
         self._rect_id = None    # the rectangle drawn on the canvas
 
-        self._hint = ctk.CTkLabel(
-            self, text="Drag a box around the letter grid only "
-                       "(outer corner to outer corner)."
-        )
-        self._hint.pack(padx=10, pady=(10, 5))
+        self._default_hint = "Drag a box around the letter grid only."
+        self._hint = ctk.CTkLabel(self, text=self._default_hint)
+        self._hint.pack(side="top", fill="x", padx=10, pady=(10, 5))
 
         self._canvas = tk.Canvas(
             self, width=self._disp_w, height=self._disp_h,
@@ -126,7 +124,7 @@ class CropDialog(ctk.CTkToplevel):
             self._hint.configure(text="That selection is too small - drag a larger box.")
             self._confirm_btn.configure(state="disabled")
         else:
-            self._hint.configure(text="Happy with it? Click 'Crop & Read Board' "
+            self._hint.configure(text="Ready? Click 'Crop & Read Board' "
                                       "(or drag again to redo).")
             self._confirm_btn.configure(state="normal")
 
@@ -142,12 +140,14 @@ class CropDialog(ctk.CTkToplevel):
         return left, top, right, bottom
 
     def _reset(self):
+        self._hint.configure(text=self._default_hint)
         if self._rect_id is not None:
             self._canvas.delete(self._rect_id)
         self._rect_id = None
         self._start = None
         self._box = None
         self._confirm_btn.configure(state="disabled")
+
 
     def _confirm(self):
         box = self._selection_in_image_coords()

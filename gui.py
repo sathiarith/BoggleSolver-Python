@@ -52,7 +52,6 @@ class BoggleSolverApp(ctk.CTk):
             reset grid weights on `board_frame`.
         entry_mode: Either "Manual" or "Image".
         tile_entries: 2D list of `CTkEntry` widgets indexed `[row][col]`.
-            Empty while the image placeholder is shown.
         manual_btn: Button that selects manual entry.
         image_btn: Button that selects image entry.
         submit_btn: Button that validates the board and runs the solver.
@@ -481,10 +480,7 @@ class BoggleSolverApp(ctk.CTk):
         self.board_size = size
         self._highlight_size_button(size)
         # Letters reset whenever the board size changes
-        if self.entry_mode == "Manual":
-            self._show_board(size)
-        else:
-            self._show_image_placeholder()
+        self._show_board(size)
 
     def _highlight_size_button(self, selected_size):
         """Mark one size button as selected and the others as unselected.
@@ -503,8 +499,7 @@ class BoggleSolverApp(ctk.CTk):
 
         Returns:
             A list of rows, each a list of the tile strings. Blank tiles
-            are empty strings, and a "Q" tile reads as "QU". The list is
-            empty if no tiles exist (e.g. in Image mode).
+            are empty strings, and a "Q" tile reads as "QU".
         """
         return [[entry.get() for entry in row] for row in self.tile_entries]
 

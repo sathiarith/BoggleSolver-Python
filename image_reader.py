@@ -38,12 +38,15 @@ def normalize_label(text: str) -> str:
 
 def _as_pil(image) -> Image.Image:
     """Accept a path or a PIL image; always return an upright RGB PIL image."""
-    if isinstance(image, str):
+    if isinstance(image, (str, os.PathLike)):
+        path = image
         try:
-            image = Image.open(image)
+            image = Image.open(path)
+            image.load()  # read the pixels now, so a truncated file fails here
         except OSError as err:
-            raise BoardReadError(f"Could not open image: {image}") from err
+            raise BoardReadError(f"Could not open image: {path}") from err
     return ImageOps.exif_transpose(image).convert("RGB")
+
 
 
 def split_into_tiles(image: Image.Image, size: int) -> list[list[Image.Image]]:
