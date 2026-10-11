@@ -15,7 +15,7 @@ Notes:
     - Image mode prompts for an image file, has user crop image to the board area,
       and then extracts the letters to board. Letter(s) that fail to be extracted
       are left as blank.
-    - The "Valid words" list is populated with a trie data structure using
+    - The "Valid Words" list is populated with a trie data structure using
       the Solver class for backend processing.
 """
 
@@ -35,7 +35,7 @@ COLOR_SELECTED = "#808080"   # gray fill for the selected/active button
 COLOR_SELECTED_TEXT = "white"
 COLOR_UNSELECTED = "white"
 COLOR_UNSELECTED_TEXT = "black"
-COLOR_BORDER = "black"
+COLOR_BORDER = "#3B8ED0" # #3B8ED0 = darkish blue
 COLOR_HEADER = "orange"
 COLOR_HEADER_FONT = "white"
 
@@ -58,7 +58,7 @@ class BoggleSolverApp(ctk.CTk):
         clear_btn: Button that empties all tiles.
         size_buttons: Maps a board size to its selector button.
         board_frame: Frame holding the tile grid; rebuilt on demand.
-        words_frame: Scrollable frame listing the valid words.
+        words_box: Scrollable frame (textbox) listing the valid words.
     """
     def __init__(self):
         """Create the window, build the layout, and show a 4x4 manual board."""
@@ -109,7 +109,7 @@ class BoggleSolverApp(ctk.CTk):
         )
         header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
 
-        box = ctk.CTkFrame(self, border_width=2, border_color=COLOR_BORDER, fg_color="white")
+        box = ctk.CTkFrame(self, border_width=2, border_color=COLOR_BORDER, fg_color="#3B8ED0")
         box.grid(row=1, column=0, sticky="new", padx=10, pady=5)
         box.grid_columnconfigure(0, weight=1)
 
@@ -160,7 +160,7 @@ class BoggleSolverApp(ctk.CTk):
 
         # Frame that holds the letter grid; contents are rebuilt on demand
         self.board_frame = ctk.CTkFrame(
-            self, border_width=2, border_color=COLOR_BORDER, fg_color="gray88"
+            self, border_width=2, border_color=COLOR_BORDER, fg_color="#3B8ED0"
         )
         self.board_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=5)
 
@@ -192,11 +192,12 @@ class BoggleSolverApp(ctk.CTk):
         )
         header.grid(row=0, column=2, sticky="ew", padx=10, pady=(10, 5))
 
-        self.words_frame = ctk.CTkScrollableFrame(
-            self, border_width=2, border_color=COLOR_BORDER, fg_color="white"
+        self.words_box = ctk.CTkTextbox(
+            self, border_width=2, border_color=COLOR_BORDER, fg_color="white",
+            text_color="black", font=ctk.CTkFont(size=14), border_spacing=8,
+            state="disabled",
         )
-        self.words_frame.grid(row=1, column=2, rowspan=2, sticky="nsew", padx=10, pady=5)
-        self.words_frame.grid_columnconfigure(0, weight=1)
+        self.words_box.grid(row=1, column=2, rowspan=2, sticky="nsew", padx=10, pady=5)
 
     def set_valid_words(self, words):
         """Replace the contents of the Valid Words panel.
@@ -205,14 +206,10 @@ class BoggleSolverApp(ctk.CTk):
             words: Iterable of strings to display, one label per word,
                 in the order given.
         """
-        for widget in self.words_frame.winfo_children():
-            widget.destroy()
-        for i, word in enumerate(words):
-            label = ctk.CTkLabel(
-                self.words_frame, text=word, font=ctk.CTkFont(size=14),
-                text_color="black", anchor="w",
-            )
-            label.grid(row=i, column=0, sticky="w", padx=8, pady=2)
+        self.words_box.configure(state="normal")  # a disabled text box ignores edits
+        self.words_box.delete("1.0", "end")
+        self.words_box.insert("1.0", "\n".join(words))
+        self.words_box.configure(state="disabled")
 
     # ------------------------------------------------------------------
     # Entry Method behavior
@@ -304,6 +301,8 @@ class BoggleSolverApp(ctk.CTk):
         Args:
             size: Number of rows and columns.
         """
+        # Clear board area along with words listed from previous session
+        self.set_valid_words([])
         self._clear_board_frame()
 
         # reset previous resize configuration weights
@@ -447,24 +446,11 @@ class BoggleSolverApp(ctk.CTk):
             valid_words = solver.find_words()
             self.set_valid_words(valid_words)
 
-    def _reset_tiles_color(self):
-        """Return all tiles' borders to COLOR_BORDER"""
-        for r, row in enumerate(self.tile_entries):
-            for c, entry in enumerate(row):
-                entry.configure(border_color=COLOR_BORDER)
-
     def _on_clear_board(self):
         """Empty every tile and return focus to the first one."""
-        # Return to default entry
+        # Rebuilding the board in manual mode gives fresh, empty tiles with default
+        # borders and puts focus on the first tile.
         self._on_manual_selected()
-
-        for row in self.tile_entries:
-            for entry in row:
-                entry.delete(0, "end")
-        if self.tile_entries:
-            self.tile_entries[0][0].focus_set()
-
-        self._reset_tiles_color()
         self.set_valid_words([])
 
     def _on_size_selected(self, size):
@@ -474,13 +460,11 @@ class BoggleSolverApp(ctk.CTk):
             size: The new board dimension (4, 5, or 6). Any letters
                 already entered are discarded.
         """
-        # Return to default manual entry
-        self._on_manual_selected()
-
         self.board_size = size
         self._highlight_size_button(size)
-        # Letters reset whenever the board size changes
-        self._show_board(size)
+        # A size change returns to manual entry, which also rebuilds the board once at
+        # the new size (empty, so any letters already entered are discarded).
+        self._on_manual_selected()
 
     def _highlight_size_button(self, selected_size):
         """Mark one size button as selected and the others as unselected.

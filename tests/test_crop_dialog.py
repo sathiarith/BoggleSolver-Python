@@ -213,6 +213,7 @@ def two_color_image(width, height, left_color=(255, 0, 0), right_color=(0, 0, 25
 # ----------------------------------------------------------------------
 # Opening the dialog
 # ----------------------------------------------------------------------
+@pytest.mark.gui
 class TestOpening:
     def test_starts_with_nothing_selected(self, make_dialog):
         dialog = make_dialog()
@@ -284,6 +285,7 @@ class TestOpening:
 # ----------------------------------------------------------------------
 # Selecting a region with the mouse
 # ----------------------------------------------------------------------
+@pytest.mark.gui
 class TestSelecting:
     def test_dragging_a_box_selects_it_and_enables_the_button(self, make_dialog):
         dialog = make_dialog()
@@ -352,7 +354,7 @@ class TestSelecting:
         assert dialog._box is None
         assert not confirm_enabled(dialog)
 
-
+@pytest.mark.gui
 class TestMinimumSize:
     @pytest.mark.parametrize("width, height, accepted", [
         (20, 20, True),     # exactly the minimum
@@ -385,6 +387,7 @@ class TestMinimumSize:
 # ----------------------------------------------------------------------
 # Reset
 # ----------------------------------------------------------------------
+@pytest.mark.gui
 class TestReset:
     def test_reset_clears_the_selection(self, make_dialog):
         dialog = make_dialog()
@@ -416,6 +419,7 @@ class TestReset:
 # ----------------------------------------------------------------------
 # Confirming and cancelling
 # ----------------------------------------------------------------------
+@pytest.mark.gui
 class TestConfirm:
     def test_confirm_returns_the_selected_region_and_closes(self, make_dialog):
         dialog = make_dialog()
@@ -478,7 +482,7 @@ class TestConfirm:
         assert dialog.result is None
         assert is_open(dialog)
 
-
+@pytest.mark.gui
 class TestCancel:
     def test_cancel_closes_and_returns_nothing(self, make_dialog):
         dialog = make_dialog()
@@ -518,6 +522,7 @@ class TestCancel:
 # ----------------------------------------------------------------------
 # Modal behavior
 # ----------------------------------------------------------------------
+@pytest.mark.gui
 class TestModal:
     def test_dialog_takes_the_input_grab_shortly_after_opening(self, make_dialog):
         dialog = make_dialog()
@@ -570,7 +575,7 @@ def run_ask_crop(root, image, action):
         raise problems[0]
     return result
 
-
+@pytest.mark.gui
 class TestAskCrop:
     def test_returns_the_cropped_picture_after_confirming(self, root):
         def confirm(dialog):
