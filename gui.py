@@ -26,6 +26,9 @@ from trie import Trie
 from solver import Solver
 from crop_dialog import ask_crop
 from image_reader import read_board, BoardReadError
+from pathlib import Path
+
+DICTIONARY_PATH = Path(__file__).resolve().parent / "words_csw24.json"
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -80,7 +83,7 @@ class BoggleSolverApp(ctk.CTk):
 
         # load dictionary word list once
         self.trie = Trie()
-        self.trie.store_dic_words(path="words_csw24.json")
+        self.trie.store_dic_words(path=str(DICTIONARY_PATH))
 
     # ------------------------------------------------------------------
     # Layout construction
