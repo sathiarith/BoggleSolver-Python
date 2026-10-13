@@ -28,7 +28,7 @@ from crop_dialog import ask_crop
 from image_reader import read_board, BoardReadError
 from pathlib import Path
 
-DICTIONARY_PATH = Path(__file__).resolve().parent / "words_csw24.json"
+DICTIONARY_PATH = Path(__file__).resolve().parent / "enable_word_list.json"
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")

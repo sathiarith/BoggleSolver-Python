@@ -17,17 +17,13 @@ class Solver:
     """
 
     def __init__(self, board: list[list[str]], trie: Trie) -> None:
-        """Initialize the solver and load the dictionary.
+        """Initialize the solver.
 
         Args:
             board: A rectangular grid of tiles. Each tile is a string,
                 usually a single letter, but multi-letter tiles such as
                 "qu" also work. Must be non-empty.
 
-        Raises:
-            FileNotFoundError: If `words_csw24.json` is not found in the
-                working directory.
-            ValueError: If the dictionary file is not a JSON object.
         """
         self.board = board
         self.row = len(board)

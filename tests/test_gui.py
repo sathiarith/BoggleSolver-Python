@@ -6,7 +6,7 @@ Layout of this file:
   * Pure tests of the two static helpers (_is_valid_tile_text and
     _get_board_validity_state). They need no window at all.
   * GUI tests, which build ONE real BoggleSolverApp for the whole run (with a tiny
-    three-word dictionary written to a temporary folder, so words_csw24.json is not
+    three-word dictionary written to a temporary folder, so enable_word_list.json is not
     needed) and reset it before every test. They need a display and are skipped
     automatically without one. A window will appear while they run. Skip them on
     purpose with:   pytest -m "not gui"
@@ -35,7 +35,7 @@ pytest.importorskip("customtkinter")
 import customtkinter as ctk
 
 import gui
-from gui import BoggleSolverApp, COLOR_BORDER, COLOR_SELECTED, COLOR_SELECTED_TEXT
+from gui import BoggleSolverApp, COLOR_BORDER, COLOR_SELECTED, COLOR_SELECTED_TEXT, DICTIONARY_PATH
 from gui import COLOR_UNSELECTED, COLOR_UNSELECTED_TEXT
 from image_reader import BoardReadError
 
@@ -107,10 +107,10 @@ def wait_until_visible(window, timeout=3.0):
 def app(tmp_path_factory):
     """One real application window for the whole run."""
     folder = tmp_path_factory.mktemp("dictionary")
-    (folder / "words_csw24.json").write_text(json.dumps(DICTIONARY), encoding="utf-8")
+    (folder / DICTIONARY_PATH).write_text(json.dumps(DICTIONARY), encoding="utf-8")
 
     patcher = pytest.MonkeyPatch()
-    patcher.chdir(folder)          # the app loads "words_csw24.json" from the working directory
+    patcher.chdir(folder)          # the app loads "enable_word_list.json"/DICTONARY_PATH from the working directory
     try:
         window = BoggleSolverApp()
     except tk.TclError as err:
