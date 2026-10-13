@@ -1,0 +1,27 @@
+# Virtual environment (everyone recreates their own with: python -m venv .venv)
+.venv/
+
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Coverage reports (only if you use pytest-cov)
+.coverage
+htmlcov/
+
+# Editor and IDE settings
+.idea/
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Leftovers from the earlier YOLO / Ultralytics experiment
+runs/
+*.pt
+
+# Packaging output (only if you build an .exe later)
+build/
+dist/
