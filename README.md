@@ -181,7 +181,7 @@ The results are de-duplicated, filtered to three or more letters, and sorted alp
 
 **OCR pipeline.** The cropped picture is split into an equal grid of tiles. Each tile is trimmed to avoid grid lines and converted to black text on a white background. Tesseract then reads it in single-character mode, restricted to the letters A-Z. A `Q` is turned into `QU`, and any tile that can't be read is left blank.
 
-**Interface.** The window is built with [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter). Each tile is an entry box that accepts only one letter or "QU". The results appear in a single read-only text box. One widget for the whole list keeps Submit responsive even when a large board produces hundreds of words.
+**Interface.** The window is built with [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter). Each tile is an entry box that accepts only one letter. The results appear in a single read-only text box. One widget for the whole list keeps Submit responsive even when a large board produces hundreds of words.
 
 ## Project Structure
 
