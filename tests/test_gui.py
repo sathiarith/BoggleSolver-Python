@@ -110,7 +110,7 @@ def app(tmp_path_factory):
     (folder / DICTIONARY_PATH).write_text(json.dumps(DICTIONARY), encoding="utf-8")
 
     patcher = pytest.MonkeyPatch()
-    patcher.chdir(folder)          # the app loads "enable_word_list.json"/DICTONARY_PATH from the working directory
+    patcher.chdir(folder)          # the app loads "enable_word_list.json"/DICTIONARY_PATH from the working directory
     try:
         window = BoggleSolverApp()
     except tk.TclError as err:

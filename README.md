@@ -9,7 +9,7 @@ and depth-first search is used for word finding and verification.
 
 ## Table of Contents
 
-- [Objective](#objective)
+- [Objective](#objectives)
 - [What is Boggle?](#what-is-boggle)
   - [Classic Boggle](#classic-boggle)
   - [Rules this project follows](#rules-this-project-follows)
@@ -224,7 +224,6 @@ Notes:
 - OCR reads one character per tile, needs a tight crop, and works best on clean, high-contrast boards. Some letters may be missed, and those tiles are left blank.
 - There is no scoring, timer, or word definitions yet.
 - Words are listed alphabetically, not grouped by length.
-- The dictionary is read from the folder the program is launched from, so the app should be started from the project folder.
 - Loading a large dictionary at start-up takes a few seconds.
 
 ## Future Ideas

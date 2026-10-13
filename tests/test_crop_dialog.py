@@ -104,7 +104,7 @@ def fail_on_errors_inside_crop_dialog(request):
     window = request.getfixturevalue("root")
     errors = []
 
-    def record(exc_type, value, tb):
+    def record(_exc_type, value, tb):
         if any("crop_dialog" in frame.filename for frame in traceback.extract_tb(tb)):
             errors.append(value)
 
@@ -354,6 +354,7 @@ class TestSelecting:
         assert dialog._box is None
         assert not confirm_enabled(dialog)
 
+
 @pytest.mark.gui
 class TestMinimumSize:
     @pytest.mark.parametrize("width, height, accepted", [
@@ -482,6 +483,7 @@ class TestConfirm:
         assert dialog.result is None
         assert is_open(dialog)
 
+
 @pytest.mark.gui
 class TestCancel:
     def test_cancel_closes_and_returns_nothing(self, make_dialog):
@@ -574,6 +576,7 @@ def run_ask_crop(root, image, action):
     if problems:
         raise problems[0]
     return result
+
 
 @pytest.mark.gui
 class TestAskCrop:

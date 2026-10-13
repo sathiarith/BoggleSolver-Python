@@ -170,6 +170,7 @@ class TestQuTiles:
         # "qua" is only two tiles but three letters, so it is long enough
         assert solve([["Qu", "a"]], ["qua"]) == ["qua"]
 
+    # Possible in the event gui.py fails or was changed to accept Q/q
     def test_separate_q_and_u_tiles_also_spell_qu(self):
         assert solve([["q", "u", "i", "t"]], ["quit"]) == ["quit"]
 
