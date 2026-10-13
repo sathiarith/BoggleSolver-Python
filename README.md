@@ -125,7 +125,7 @@ Loading a large dictionary takes a few seconds, so the window may take a moment 
 
 **Image entry**
 
-1. Click **Image** and choose a picture of the board.
+1. Click **Image** and choose a picture of the board. Sample images are located in "images" directory.
 2. In the crop window, drag a box around the letter grid only, from its outer corner to the opposite outer corner. Then click **Crop & Read Board**.
 3. The letters are read into the board. Fill in any tiles that couldn't be read, correct any mistakes, and click **Submit**.
 
