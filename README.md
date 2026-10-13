@@ -56,7 +56,7 @@ Boggle was invented by Allan Turoff and first sold by Parker Brothers in the ear
 | Words are chained through touching tiles, including diagonals | Yes                                            |
 | A tile can be used once per word | Yes                                            |
 | Minimum word length of 3 letters | Yes                                            |
-| Words must be in the dictionary | Yes, `word_list.json`                          |
+| Words must be in the dictionary | Yes, `enable_word_list.json`                   |
 | The "QU" tile spells both letters and counts as two for length | Yes                                            |
 | Rolling dice, timer, and scoring | No. The app solves whatever letters you enter. |
 
