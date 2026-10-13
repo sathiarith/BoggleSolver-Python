@@ -96,7 +96,7 @@ pip install customtkinter pillow opencv-python pytesseract
 
 ### Dictionary file
 
-The solver loads `word_list.json` from the folder the program is launched from, so keep it in the project folder and start the app from there. The file is a JSON object whose keys are the words:
+The solver loads `enable_word_list.json` from the folder the program is launched from, so keep it in the project folder and start the app from there. The file is a JSON object whose keys are the words:
 
 ```json
 {
