@@ -63,7 +63,7 @@ class BoggleSolverApp(ctk.CTk):
         board_frame: Frame holding the tile grid; rebuilt on demand.
         words_box: Scrollable frame (textbox) listing the valid words.
     """
-    def __init__(self):
+    def __init__(self, dictionary_path=None):
         """Create the window, build the layout, and show a 4x4 manual board."""
         super().__init__()
 
@@ -82,8 +82,9 @@ class BoggleSolverApp(ctk.CTk):
         self._show_board(self.board_size)  # default: 4x4 manual board
 
         # load dictionary word list once
+        self.dictionary_path = dictionary_path or DICTIONARY_PATH
         self.trie = Trie()
-        self.trie.store_dic_words(path=str(DICTIONARY_PATH))
+        self.trie.store_dic_words(path=str(self.dictionary_path))
 
     # ------------------------------------------------------------------
     # Layout construction

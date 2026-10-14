@@ -35,7 +35,7 @@ pytest.importorskip("customtkinter")
 import customtkinter as ctk
 
 import gui
-from gui import BoggleSolverApp, COLOR_BORDER, COLOR_SELECTED, COLOR_SELECTED_TEXT, DICTIONARY_PATH
+from gui import BoggleSolverApp, COLOR_BORDER, COLOR_SELECTED, COLOR_SELECTED_TEXT
 from gui import COLOR_UNSELECTED, COLOR_UNSELECTED_TEXT
 from image_reader import BoardReadError
 
@@ -107,12 +107,13 @@ def wait_until_visible(window, timeout=3.0):
 def app(tmp_path_factory):
     """One real application window for the whole run."""
     folder = tmp_path_factory.mktemp("dictionary")
-    (folder / DICTIONARY_PATH).write_text(json.dumps(DICTIONARY), encoding="utf-8")
+    dict_file_path = folder / "dictionary.json"
+    dict_file_path.write_text(json.dumps(DICTIONARY), encoding="utf-8")
 
     patcher = pytest.MonkeyPatch()
-    patcher.chdir(folder)          # the app loads "enable_word_list.json"/DICTIONARY_PATH from the working directory
+    patcher.chdir(folder)          # the app loads "dictionary.json" from the test's working directory
     try:
-        window = BoggleSolverApp()
+        window = BoggleSolverApp(dictionary_path=dict_file_path)
     except tk.TclError as err:
         pytest.skip(f"no display available for GUI tests ({err})")
     finally:
