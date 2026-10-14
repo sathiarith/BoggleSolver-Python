@@ -1,7 +1,7 @@
 # Boggle Solver
 
-A desktop Boggle board solver built with Python and CustomTkinter. 
-There are two ways to enter letters on the board: typing manually or providing an image
+The desktop Boggle board solver was built with Python and CustomTkinter. 
+There are two ways to enter letters on the board: type manually or provide an image
 of a Boggle or Boggle-like board. Word list generation uses a trie that load dictionary words 
 and depth-first search is used for word finding and verification.
 
